@@ -1,8 +1,8 @@
 # meaning_frequency_law_via_contextual_diversity
 Programs to examine Zipf's meaning-frequency law through contextual diversity
-
+<!-- 
 Implementations for the methods for detecting meaning changes (differences) with their representative instances. All source codes are available under src/. The details of the methods are available in the following paper.
-
+-->
 ## Citation
 Please cite the following paper if you use the above resources.  
 <!-- 
@@ -19,4 +19,4 @@ In Subsection 3.1 in the paper above, max(Kt, Ks)/min(Kt, Ks) is described as a 
 
 ## Contact
 Ryo Nagata (nagata-acl2025 [at] ml.hyogo-u.ac.jp).
-<!-- 
+--> 
