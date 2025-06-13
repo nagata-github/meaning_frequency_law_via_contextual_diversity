@@ -1,4 +1,4 @@
-# meaning_frequency_law_via_contextual_diversity
+# Meaning frequency law through contextual diversity
 Programs to examine Zipf's meaning-frequency law through contextual diversity
 
 Implementations of the method for examining Zipf’s meaning-frequency law through contextualized word vectors (of BERT). All source codes are available under src/. The details of the methods are available in the following paper.
