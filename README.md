@@ -13,7 +13,7 @@ Please cite the following paper if you use the above resources.
  booktitle = "Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics ",  
  year = "2025"
 }  
-
+```
 
 ## Contact
 Ryo Nagata (nagata-acl2025 [at] ml.hyogo-u.ac.jp.).
