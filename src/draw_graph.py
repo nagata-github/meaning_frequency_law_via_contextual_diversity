@@ -13,7 +13,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_file')
     parser.add_argument('-f', '--freq_threshold', type=int, default=100)
-    parser.add_argument('-b', '--bin_size', type=float, default=100)
+    parser.add_argument('-b', '--bin_size', type=int, default=100)
     parser.add_argument('-m', '--max_rank', type=int, default=20000)
    
     args = parser.parse_args()
