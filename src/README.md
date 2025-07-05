@@ -19,7 +19,7 @@ util.py: utils to calculate kappa
     e.g.,
      `python cal_kappa_with_freq.py sample_corpus.txt` (for English text) 
 
-      `python cal_kappa_with_freq.py sample_corpus_fr.txt` (for French text)
+      `python cal_kappa_with_freq.py -m tohoku-nlp/bert-base-japanese-v3 sample_corpus_jp.txt` (for Japanese text)
 
 
 3. Draw a graph of frequency and kappa.
