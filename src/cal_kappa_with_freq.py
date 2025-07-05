@@ -19,7 +19,7 @@ def parse_args():
     parser.add_argument('-m',
                         '--bert_model',
                         help='Language model to get word vectors',
-                        default='bert-base-multilingual-uncased')
+                        default='bert-base-uncased')
 
     parser.add_argument('-c',
                         '--cased',
@@ -27,6 +27,11 @@ def parse_args():
                         action='store_true')
 
     parser.add_argument('-b', '--batch_size', default=32, type=int)
+
+
+    parser.add_argument('-s', '--start_layer', default=12, type=int)
+
+    parser.add_argument('-e', '--end_layer', type=int)
 
     parser.add_argument('-f',
                         '--freq_threshold',
@@ -46,22 +51,24 @@ frequencies.
 def cal_kappa_with_freqs(vectorizer,
                          tokenizer,
                          sentences,
+                         start_layer,
+                         end_layer,
                          freq_threshold=10,
                          is_split_into_words=True,
                          device='cpu'):
 
-    token2vecs = util. tokenize_and_vectorize(vectorizer,
-                                              tokenizer,
-                                              sentences,
-                                              is_split_into_words=is_split_into_words,
-                                              device=device)
+    token2sum_vec, token2freq = util.tokenize_and_sum_vectorize(vectorizer,
+                                                                tokenizer,
+                                                                sentences,
+                                                                start_layer=start_layer,
+                                                                end_layer=end_layer,
+                                                                device=device)
 
     token2kappa_freq = {}
     vector_size = None
-    for token, vecs in token2vecs.items():
-        freq = len(vecs)
+    for token, sum_vec in token2sum_vec.items():
+        freq = token2freq[token]
         if freq >= freq_threshold:
-            sum_vec = np.sum(vecs, axis=0)
             vector_size = sum_vec.size
             mean_norm = np.linalg.norm(sum_vec)/float(freq)
             kappa = util.cal_concentration(mean_norm, vector_size=vector_size)
@@ -93,6 +100,9 @@ def main():
 
     args = parse_args()
 
+    if not args.end_layer:
+        args.end_layer = args.start_layer + 1
+
     # Preparing data
     sentences = util.load_sentences(args.corpus, args.cased)
     batched_sentences = util.to_batches(sentences, batch_size=args.batch_size)
@@ -100,13 +110,15 @@ def main():
 
     # Preparing BERT model and tokenizer
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    vectorizer = BertModel.from_pretrained(args.bert_model)
+    vectorizer = BertModel.from_pretrained(args.bert_model, output_hidden_states=True)
     tokenizer = AutoTokenizer.from_pretrained(args.bert_model)
 
     # Calculating mean vectors with token frequencies
     token2kappa_freq = cal_kappa_with_freqs(vectorizer,
                                             tokenizer,
                                             batched_sentences,
+                                            start_layer=args.start_layer,
+                                            end_layer=args.end_layer,
                                             freq_threshold=args.freq_threshold,
                                             device=device)
 

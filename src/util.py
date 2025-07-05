@@ -59,9 +59,10 @@ def load_kappa_freq_file(filename,
     return data
 
 
-def tokenize_and_vectorize(vectorizer, tokenizer, batched_sentences, 
-                           is_split_into_words=True,
-                           device='cpu'):
+def tokenize_and_sum_vectorize(vectorizer, tokenizer, batched_sentences, 
+                               start_layer, end_layer, 
+                               is_split_into_words=True,
+                               device='cpu'):
     """
     To tokenize and vectorize batched sentences. The obtained vectors are all
     normalized so that their norms equal one. This is for the von Mises-Fisher
@@ -74,44 +75,60 @@ def tokenize_and_vectorize(vectorizer, tokenizer, batched_sentences,
 
     tokenizer: tokenizer that is compatible with the vectorizer.
 
+    start_layer: int
+        selects which layer to use as word vectors (starting layer)
 
-    vetcor_size: int
-        the dimension of the mean vector (and also all vectors in the space).
-        its default is set to 1024 coming from 'bert-large' models
-
+    end_layer: int
+        selects which layer to use as word vectors (end layer)
+        
 
     Returns 
     -------
-    token2vecs: {str:list[numpy array]} 
-        dict. mapping token to its normalized word vectors
+    token2suM_vec: {str:list[numpy array]} 
+        dict. mapping token to its summed vectors
     
     """
 
     vectorizer.to(device)
     vectorizer.eval()
-    token2vecs = {}
+    token2sum_vec = {}
+    token2freq = {}
     with torch.no_grad():
         for sentences in batched_sentences:
-            token_ids, mask_ids, token_idx2subword_idx =\
-                to_ids_with_token_idx(tokenizer,
-                                      sentences,
-                                      is_split_into_words=is_split_into_words,
-                                      device=device)
+            tokens = tokenizer(sentences,
+                               is_split_into_words=is_split_into_words,
+                               return_tensors='pt',
+                               padding=True,
+                               truncation=True)
+                       
+            token_ids = tokens['input_ids'].to(device)
+            mask_ids = tokens['attention_mask'].to(device)
+
             output = vectorizer(token_ids, mask_ids)
-            last_hidden_state = output.last_hidden_state
 
-            for batch_i, sentence in enumerate(sentences):
-                for token_i, subword_i in token_idx2subword_idx[batch_i].items():
-                    vec = last_hidden_state[batch_i][subword_i]
-                    vec = vec.to('cpu').detach().numpy().copy()
+            # hidden states from start_layer to end_layer - 1
+            hidden_states = output.hidden_states[start_layer:end_layer]
+
+            # (layer, vec_dim, tokens)
+            hidden_states = torch.stack(hidden_states, dim=0)
+            hidden_states = hidden_states.to('cpu').detach().numpy().copy()
+
+            for batch_idx in range(len(sentences)):
+                surface_tokens = tokenizer.convert_ids_to_tokens(token_ids[batch_idx])
+                for token_idx, token in enumerate(surface_tokens):
+                    layer_vecs = hidden_states[:, batch_idx, token_idx]
                     # normalizing for vMF distribution
-                    vec = vec/np.linalg.norm(vec) 
-                    token = sentence[token_i]
-                    vecs = token2vecs.get(token, [])
-                    vecs.append(vec)
-                    token2vecs[token] = vecs
+                    layer_vecs = layer_vecs/np.linalg.norm(layer_vecs,
+                                                           axis=1,
+                                                           keepdims=True)
+                    mean_vec = np.mean(layer_vecs, axis=0)
+                    dim = mean_vec.shape
+                    sum_vec = token2sum_vec.get(token, np.zeros(dim))
+                    sum_vec += mean_vec
+                    token2sum_vec[token] = sum_vec
+                    token2freq[token] = token2freq.get(token, 0) + 1
 
-    return token2vecs
+    return token2sum_vec, token2freq
 
 
 def to_batches(instances, batch_size=32):
