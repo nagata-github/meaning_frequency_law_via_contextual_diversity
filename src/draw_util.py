@@ -21,8 +21,6 @@ def draw_scatter(x, y, xlabel, ylabel, info=[],
     text = ' '.join(info)
     plt.text(2.5, 1.3, text)
 
-    plt.show()
-
 
 def put_into_bins(data, bin_size=100):
 

@@ -119,8 +119,8 @@ def main():
                            ylabel=r'$\log_{10}(v)$',
                            info=[text])
 
-    plt.legend()
-    plt.legend(bbox_to_anchor=(1, 0), loc='lower right')
+    #plt.legend()
+    #plt.legend(bbox_to_anchor=(1, 0), loc='lower right')
     plt.show()
 
 if __name__ == '__main__':

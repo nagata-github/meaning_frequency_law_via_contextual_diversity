@@ -47,14 +47,16 @@ def load_kappa_freq_file(filename,
         for line in fp:
             line = line.rstrip()
             token, kappa, freq = line.split(delim)
+            kappa = float(kappa)
+            freq = int(freq)
             if token == '[CLS]':
                 continue
             if ignore_mid_subwords==True and token.startswith('##'):
                 continue
             if ignore_digit==True and token.isdigit():
                 continue
-            if int(freq) > freq_threshold:
-                data.append((token, float(kappa), int(freq)))
+            if freq > freq_threshold and kappa > 0:
+                data.append((token, kappa, freq))
 
     return data
 
