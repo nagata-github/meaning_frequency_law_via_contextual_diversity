@@ -17,13 +17,14 @@ util.py: utils to calculate kappa
      OUTPUT_FILE: result file consisting of token, kappa, and frequeny separated by TAB.
    
     e.g.,
-     `python cal_kappa_with_freq.py sample_corpus.txt` (for English text) 
+     `python cal_kappa_with_freq.py sample_corpus.txt > output.dat` (for English text) 
 
-      `python cal_kappa_with_freq.py -m tohoku-nlp/bert-base-japanese-v3 sample_corpus_jp.txt` (for Japanese text)
+      `python cal_kappa_with_freq.py -m tohoku-nlp/bert-base-japanese-v3 sample_corpus_jp.txt > output.dat` (for Japanese text)
 
 
 3. Draw a graph of frequency and kappa.
    
-    `python draw_graph.py KAPPA_FREQ_FILE`
+    `python draw_graph.py -f 10 -b 10 output.data`
    
-      KAPPA_FREQ_FILE: output from the first program.
+      -f: frequency threshold
+      -b: bin size
